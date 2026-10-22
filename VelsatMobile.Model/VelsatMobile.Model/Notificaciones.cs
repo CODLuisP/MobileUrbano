@@ -1,0 +1,18 @@
+namespace VelsatMobile.Model;
+
+public class Notificaciones
+{
+	public string AccountID { get; set; }
+
+	public string DeviceID { get; set; }
+
+	public int Timestamp { get; set; }
+
+	public int StatusCode { get; set; }
+
+	public double Latitude { get; set; }
+
+	public double Longitude { get; set; }
+
+	public double SpeedKPH { get; set; }
+}

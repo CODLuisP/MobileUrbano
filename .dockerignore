@@ -1,0 +1,31 @@
+# Artefactos de compilación e IDE
+**/bin/
+**/obj/
+**/.vs/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Git
+.git
+.gitignore
+
+# Secretos y configuración local (se inyectan por variables de entorno / volumen)
+.env
+.env.*
+!.env.example
+**/appsettings.json
+**/appsettings.*.json
+**/firebase-credentials.json
+secrets/
+**/*.pfx
+**/*.pem
+**/*.key
+
+# Docker / docs
+Dockerfile
+docker-compose.yml
+.dockerignore
+README.md

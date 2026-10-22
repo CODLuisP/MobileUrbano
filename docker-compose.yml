@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  velsat-mobile-urbano:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: velsat-mobile-urbano:latest
+    container_name: velsat-mobile-urbano
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3010:8080"
+    volumes:
+      # Única configuración: cadenas de conexión, clave JWT y credenciales de Firebase.
+      # Fuera de git y de la imagen; se sube a mano al servidor. Solo lectura.
+      - ./VelsatMobile/appsettings.json:/app/appsettings.json:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: app-net
+    external: true

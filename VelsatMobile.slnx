@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="VelsatMobile.Data/VelsatMobile.Data.csproj" />
+  <Project Path="VelsatMobile.Model/VelsatMobile.Model.csproj" />
+  <Project Path="VelsatMobile/VelsatMobile.csproj" />
+</Solution>

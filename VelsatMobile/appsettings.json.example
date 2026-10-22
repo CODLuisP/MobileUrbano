@@ -1,0 +1,41 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "settings": {
+    "secretkey": "CAMBIAR_POR_CLAVE_JWT_LARGA_Y_ALEATORIA"
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=mysql-gts;Port=3306;Database=urbano;Uid=USUARIO;Pwd=CONTRASENA;Charset=utf8mb4;Pooling=true;Allow User Variables=True;MinimumPoolSize=5;MaximumPoolSize=50;ConnectionTimeout=30;ConnectionLifeTime=300;ConnectionReset=true;DefaultCommandTimeout=120;",
+    "SecondConnection": "Server=mysql-gts;Port=3306;Database=urb_his;Uid=USUARIO;Pwd=CONTRASENA;Charset=utf8mb4;Pooling=true;Allow User Variables=True;MinimumPoolSize=5;MaximumPoolSize=50;ConnectionTimeout=30;ConnectionLifeTime=300;ConnectionReset=true;DefaultCommandTimeout=120;"
+  },
+  "Kestrel": {
+    "Limits": {
+      "MaxConcurrentConnections": 500,
+      "MaxConcurrentUpgradedConnections": 300,
+      "KeepAliveTimeout": "00:02:00",
+      "RequestHeadersTimeout": "00:00:30",
+      "MaxRequestBodySize": 52428800
+    }
+  },
+  "Firebase": {
+    "ProjectId": "velsat-app",
+    "Credentials": {
+      "type": "service_account",
+      "project_id": "velsat-app",
+      "private_key_id": "ID_DE_LA_CLAVE",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nCLAVE_PRIVADA\n-----END PRIVATE KEY-----\n",
+      "client_email": "CUENTA@velsat-app.iam.gserviceaccount.com",
+      "client_id": "CLIENT_ID",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/CUENTA%40velsat-app.iam.gserviceaccount.com",
+      "universe_domain": "googleapis.com"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+# Compilación
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+publish/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Configuración con credenciales
+appsettings.json
+appsettings.*.json
+!appsettings.json.example
+.env
+.env.*
+!.env.example
+
+# Credenciales
+firebase-credentials.json
+secrets/
+*.pfx
+*.pem
+*.key
