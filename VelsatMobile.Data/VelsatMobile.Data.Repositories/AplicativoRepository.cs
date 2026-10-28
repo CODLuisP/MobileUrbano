@@ -23,7 +23,7 @@ public class AplicativoRepository : IAplicativoRepository
 
 	public async Task<IEnumerable<Unidad>> GetUnidadesUsuario(string accountID)
 	{
-		string sql = "\r\n        SELECT DISTINCT deviceID \r\n        FROM (\r\n            SELECT deviceID FROM device WHERE accountID = @AccountID \r\n            UNION ALL \r\n            SELECT deviceID FROM urbano.deviceuser WHERE userID = @AccountID AND Status = 1\r\n        ) AS combined_devices";
+		string sql = "\r\n        SELECT DISTINCT deviceID \r\n        FROM (\r\n            SELECT deviceID FROM device WHERE accountID = @AccountID \r\n            UNION ALL \r\n            SELECT deviceID FROM deviceuser WHERE userID = @AccountID AND Status = 1\r\n        ) AS combined_devices";
 		return await _defaultConnection.QueryAsync<Unidad>(sql, new
 		{
 			AccountID = accountID

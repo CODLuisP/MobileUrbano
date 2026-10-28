@@ -143,7 +143,7 @@ public class KilometrosRepository : IKilometrosRepository
 				foreach (Historicos item in list)
 				{
 					string tabla = item.Tabla;
-					string sql2 = "select deviceID, MAX(odometerKM) AS maximo, MIN(odometerKM) AS minimo, (MAX(odometerKM) - MIN(odometerKM)) as kilometros from " + tabla + " where deviceID in (select deviceID from urbano.device where accountID=@AccountID) and timestamp between @FechainiUnix and @FechafinUnix group by deviceID";
+					string sql2 = "select deviceID, MAX(odometerKM) AS maximo, MIN(odometerKM) AS minimo, (MAX(odometerKM) - MIN(odometerKM)) as kilometros from " + tabla + " where deviceID in (select deviceID from device where accountID=@AccountID) and timestamp between @FechainiUnix and @FechafinUnix group by deviceID";
 					DynamicParameters dynamicParameters2 = new DynamicParameters();
 					dynamicParameters2.Add("FechainiUnix", resultadosCalculoDias.UnixFechaInicio);
 					dynamicParameters2.Add("FechafinUnix", resultadosCalculoDias.UnixFechaFin);

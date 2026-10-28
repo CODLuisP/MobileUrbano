@@ -31,7 +31,7 @@ public class DatosCargainicialService : IDatosCargainicialService
 		{
 			return _deviceIds;
 		}
-		_deviceIds = (await _defaultConnection.QueryAsync<string>("\r\n                SELECT DISTINCT deviceID \r\n                FROM (\r\n                    SELECT deviceID FROM device WHERE accountID = @Login \r\n                    UNION ALL \r\n                    SELECT deviceID FROM urbano.deviceuser WHERE userID = @Login AND Status = 1\r\n                ) AS combined_devices", new
+		_deviceIds = (await _defaultConnection.QueryAsync<string>("\r\n                SELECT DISTINCT deviceID \r\n                FROM (\r\n                    SELECT deviceID FROM device WHERE accountID = @Login \r\n                    UNION ALL \r\n                    SELECT deviceID FROM deviceuser WHERE userID = @Login AND Status = 1\r\n                ) AS combined_devices", new
 		{
 			Login = login
 		}, _defaultTransaction)).ToList();
