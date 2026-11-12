@@ -67,49 +67,35 @@ public class HistoricosRepository : IHistoricosRepository
 		ResultadosCalculoDias resultadosCalculoDias = CalcularDias(fechaini, fechafin);
 		if (resultadosCalculoDias.NumDias <= 3.0)
 		{
-			List<Historicos> list = _defaultConnection.Query<Historicos>("SELECT tabla FROM historicos WHERE timeini <= @FechafinUnix AND timefin >= @FechainiUnix", new
-			{
-				FechainiUnix = resultadosCalculoDias.UnixFechaInicio,
-				FechafinUnix = resultadosCalculoDias.UnixFechaFin
-			}, _defaultTransaction).ToList();
+			// La depuración diaria mueve a historicos, con un retraso de 7 días, el registro
+			// del día calendario correspondiente (hoy - 7). Todo lo posterior a ese día
+			// (los últimos 6 días hasta hoy) aún no ha sido migrado y sigue en eventdata.
+			int unixLimite = GetUnixLimiteDepuracion();
 			DatosReporting datosReporting = new DatosReporting
 			{
 				ListaTablas = new List<TablasReporting>()
 			};
-			if (list.Count == 0)
+			if (resultadosCalculoDias.UnixFechaFin <= unixLimite)
 			{
-				string sql = "\r\n                        SELECT deviceID, timestamp, speedKPH, longitude, latitude, odometerKM, address \r\n                        FROM eventdata \r\n                        WHERE accountID = @AccountID \r\n                          AND deviceID = @DeviceID \r\n                          AND timestamp BETWEEN @FechainiUnix AND @FechafinUnix\r\n                        ORDER BY timestamp";
-				datosReporting.ListaTablas = _defaultConnection.Query<TablasReporting>(sql, new
-				{
-					AccountID = accountID,
-					DeviceID = deviceID,
-					FechainiUnix = resultadosCalculoDias.UnixFechaInicio,
-					FechafinUnix = resultadosCalculoDias.UnixFechaFin
-				}, _defaultTransaction).ToList();
-				for (int i = 0; i < datosReporting.ListaTablas.Count; i++)
-				{
-					datosReporting.ListaTablas[i].Item = i + 1;
-				}
+				datosReporting.ListaTablas = ConsultarHistoricos(accountID, deviceID, resultadosCalculoDias.UnixFechaInicio, resultadosCalculoDias.UnixFechaFin);
+			}
+			else if (resultadosCalculoDias.UnixFechaInicio > unixLimite)
+			{
+				datosReporting.ListaTablas = ConsultarEventData(accountID, deviceID, resultadosCalculoDias.UnixFechaInicio, resultadosCalculoDias.UnixFechaFin);
 			}
 			else
 			{
-				foreach (Historicos item in list)
-				{
-					string tabla = item.Tabla;
-					string sql2 = "\r\n                            SELECT deviceID, timestamp, speedKPH, longitude, latitude, odometerKM, address \r\n                            FROM " + tabla + " \r\n                            WHERE accountID = @AccountID \r\n                              AND deviceID = @DeviceID \r\n                              AND timestamp BETWEEN @FechainiUnix AND @FechafinUnix\r\n                            ORDER BY timestamp";
-					List<TablasReporting> collection = _secondConnection.Query<TablasReporting>(sql2, new
-					{
-						AccountID = accountID,
-						DeviceID = deviceID,
-						FechainiUnix = resultadosCalculoDias.UnixFechaInicio,
-						FechafinUnix = resultadosCalculoDias.UnixFechaFin
-					}, _secondTransaction).ToList();
-					datosReporting.ListaTablas.AddRange(collection);
-				}
-				for (int j = 0; j < datosReporting.ListaTablas.Count; j++)
-				{
-					datosReporting.ListaTablas[j].Item = j + 1;
-				}
+				// El rango cruza el límite de depuración: una parte está en historicos
+				// y la parte más reciente todavía está en eventdata.
+				List<TablasReporting> datosHistoricos = ConsultarHistoricos(accountID, deviceID, resultadosCalculoDias.UnixFechaInicio, unixLimite);
+				List<TablasReporting> datosEventData = ConsultarEventData(accountID, deviceID, unixLimite + 1, resultadosCalculoDias.UnixFechaFin);
+				datosReporting.ListaTablas.AddRange(datosHistoricos);
+				datosReporting.ListaTablas.AddRange(datosEventData);
+				datosReporting.ListaTablas = datosReporting.ListaTablas.OrderBy((TablasReporting t) => t.Timestamp).ToList();
+			}
+			for (int i = 0; i < datosReporting.ListaTablas.Count; i++)
+			{
+				datosReporting.ListaTablas[i].Item = i + 1;
 			}
 			if (datosReporting.ListaTablas.Count == 0 || datosReporting.ListaTablas == null)
 			{
@@ -124,6 +110,50 @@ public class HistoricosRepository : IHistoricosRepository
 		{
 			Mensaje = "La diferencia entre las fechas es mayor a 3 días; seleccione otras fechas"
 		};
+	}
+
+	private int GetUnixLimiteDepuracion()
+	{
+		DateTime dateTime = DateTime.Now.Date.AddDays(-7.0);
+		return DateUnix(dateTime.ToString("dd/MM/yyyy") + " 23:59");
+	}
+
+	private List<TablasReporting> ConsultarHistoricos(string accountID, string deviceID, int unixFechaInicio, int unixFechaFin)
+	{
+		List<Historicos> list = _defaultConnection.Query<Historicos>("SELECT tabla FROM historicos WHERE timeini <= @FechafinUnix AND timefin >= @FechainiUnix", new
+		{
+			FechainiUnix = unixFechaInicio,
+			FechafinUnix = unixFechaFin
+		}, _defaultTransaction).ToList();
+		if (list.Count == 0)
+		{
+			return ConsultarEventData(accountID, deviceID, unixFechaInicio, unixFechaFin);
+		}
+		List<TablasReporting> list2 = new List<TablasReporting>();
+		foreach (Historicos item in list)
+		{
+			string sql = "\r\n                SELECT deviceID, timestamp, speedKPH, longitude, latitude, odometerKM, address \r\n                FROM " + item.Tabla + " \r\n                WHERE accountID = @AccountID \r\n                  AND deviceID = @DeviceID \r\n                  AND timestamp BETWEEN @FechainiUnix AND @FechafinUnix\r\n                ORDER BY timestamp";
+			list2.AddRange(_secondConnection.Query<TablasReporting>(sql, new
+			{
+				AccountID = accountID,
+				DeviceID = deviceID,
+				FechainiUnix = unixFechaInicio,
+				FechafinUnix = unixFechaFin
+			}, _secondTransaction).ToList());
+		}
+		return list2;
+	}
+
+	private List<TablasReporting> ConsultarEventData(string accountID, string deviceID, int unixFechaInicio, int unixFechaFin)
+	{
+		string sql = "\r\n                SELECT deviceID, timestamp, speedKPH, longitude, latitude, odometerKM, address \r\n                FROM eventdata \r\n                WHERE accountID = @AccountID \r\n                  AND deviceID = @DeviceID \r\n                  AND timestamp BETWEEN @FechainiUnix AND @FechafinUnix\r\n                ORDER BY timestamp";
+		return _defaultConnection.Query<TablasReporting>(sql, new
+		{
+			AccountID = accountID,
+			DeviceID = deviceID,
+			FechainiUnix = unixFechaInicio,
+			FechafinUnix = unixFechaFin
+		}, _defaultTransaction).ToList();
 	}
 
 	public int DateUnix(string fecha)
